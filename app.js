@@ -1,4 +1,4 @@
-import { PREFECTURES, QUESTIONS, CATEGORIES, SOURCES, makeRound, shuffle } from './data.js';
+import { PREFECTURES, QUESTIONS, CATEGORIES, SOURCES, makeRound, shuffle } from './data.js?v=20260909-modes-2';
 
 const app=document.querySelector('#app');
 const icons={
