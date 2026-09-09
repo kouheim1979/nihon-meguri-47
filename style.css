@@ -24,3 +24,5 @@ rt{display:block;max-width:100%;white-space:normal;margin-bottom:.28em}
 .map-tile.active{background:#d4e1f7;color:#6c85ac;box-shadow:0 2px 0 #b9cce7}
 .map-tile.active.visited{background:var(--blue);color:white;box-shadow:0 2px 0 #123aba}
 @media(max-width:780px){.map-home .tile-map,.result-layout .tile-map{grid-template-rows:repeat(13,2rem)}}
+
+.landmark-mode-field{margin-top:22px}.landmark-mode-field[hidden]{display:none}.mode-card{padding:16px 30px 16px 13px;justify-content:center}.mode-card .radio-mark{right:9px}.mode-card .category-copy strong{font-size:.875rem}

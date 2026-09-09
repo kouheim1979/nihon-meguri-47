@@ -213,7 +213,7 @@ const foods = [
 export const CATEGORIES = [
  {id:'mix',name:'おまかせ',note:'5つのジャンルをミックス',icon:'shuffle',color:'blue'},
  {id:'capital',name:'県庁所在地',note:'まちの名前、わかるかな？',icon:'pin',color:'blue'},
- {id:'landmark',name:'名所めぐり',note:'あの景色は、どこの県？',icon:'flag',color:'teal'},
+ {id:'landmark',name:'名所めぐり',note:'県から名所・名所から県',icon:'flag',color:'teal'},
  {id:'food',name:'ご当地グルメ',note:'おいしい名物をあてよう',icon:'utensils',color:'orange'},
  {id:'craft',name:'伝統工芸',note:'職人の技とふるさと',icon:'gem',color:'purple'},
  {id:'area',name:'面積くらべ',note:'大きいのは？ 小さいのは？',icon:'ruler',color:'pink'},
@@ -241,10 +241,15 @@ export const QUESTIONS = [
  ...PREFECTURES.map(p=>({id:`area-${p.id}`,category:'area',prefId:p.id,title:'都道府県の面積',kana:'とどうふけんのめんせき',prompt:p.rank<=24?'この4つで、面積がいちばん大きいのは？':'この4つで、面積がいちばん小さいのは？'})),
 ];
 
-export function makeQuestion(template,random=Math.random){
+export function makeQuestion(template,random=Math.random,landmarkMode='prefecture'){
  const p=PREFECTURES.find(p=>p.id===template.prefId);
  let options;
  let explanation=template.explanation;
+ if(template.category==='landmark'&&landmarkMode==='landmark'){
+  const pool=shuffle(landmarks.filter(([id])=>id!==p.id),random).slice(0,3);
+  options=shuffle([{label:template.title,kana:template.kana,correct:true,prefId:p.id},...pool.map(([id,label,kana])=>({label,kana,prefId:id}))],random);
+  return {...template,id:`${template.id}-reverse`,landmarkMode,title:p.name,kana:p.kana,prompt:'この都道府県にある名所は、どれ？',options,explanation:`${template.title}は${p.name}にあります。${explanation}`,areaOptions:null};
+ }
  if(template.category==='capital'){
   const pool=p.id===13?[{label:'千代田区',kana:'ちよだく'},{label:'渋谷区',kana:'しぶやく'},{label:'港区',kana:'みなとく'}]:shuffle(PREFECTURES.filter(a=>a.id!==p.id&&a.id!==13),random).slice(0,3).map(a=>({label:a.capital,kana:a.capitalKana}));
   options=shuffle([{label:p.capital,kana:p.capitalKana,correct:true},...pool],random);
@@ -261,7 +266,7 @@ export function makeQuestion(template,random=Math.random){
  return {...template,options,explanation,areaOptions:template.category==='area'?options.map(o=>PREFECTURES.find(p=>p.id===o.prefId)).sort((a,b)=>a.rank-b.rank):null};
 }
 
-export function makeRound(category='mix',count=10,random=Math.random){
+export function makeRound(category='mix',count=10,random=Math.random,landmarkMode='prefecture'){
  if(!CATEGORIES.some(c=>c.id===category)) throw new Error('Unknown quiz category');
  let selected;
  if(category==='mix'){
@@ -281,5 +286,5 @@ export function makeRound(category='mix',count=10,random=Math.random){
    if(selected.length===QUESTIONS.length)break;
   }
  }else selected=shuffle(QUESTIONS.filter(q=>q.category===category),random).slice(0,count);
- return shuffle(selected,random).map(q=>makeQuestion(q,random));
+ return shuffle(selected,random).map(q=>makeQuestion(q,random,landmarkMode));
 }

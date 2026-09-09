@@ -23,6 +23,11 @@ const ruby=(text,kana)=>`<ruby><span>${escape(text)}</span><rp>（</rp><rt>${esc
 const getCategory=id=>CATEGORIES.find(c=>c.id===id);
 let screen='home',category='mix',round=[],index=0,answers=[],isReview=false;
 let furigana=true;
+let landmarkMode='prefecture';
+const landmarkModes=[
+ {id:'landmark',name:'この県の名所は？',note:'都道府県を見て、名所を選ぶ'},
+ {id:'prefecture',name:'この名所はどこ？',note:'名所を見て、都道府県を選ぶ'},
+];
 
 document.querySelector('.site-header').innerHTML=`
  <a class="brand" href="./" data-action="home" aria-label="日本めぐり47 ホーム">
@@ -54,6 +59,9 @@ function renderHome(){
    <fieldset class="category-field"><legend><span>ジャンルを選ぶ</span><span class="field-note">1回10問</span></legend>
     <div class="category-grid">${CATEGORIES.map(c=>`<label class="category-card ${category===c.id?'selected':''}" data-category="${c.id}"><input type="radio" name="category" value="${c.id}" ${category===c.id?'checked':''}><span class="category-icon ${c.color}">${icon(c.icon)}</span><span class="category-copy"><strong>${c.name}</strong><small>${c.note}</small></span><span class="radio-mark" aria-hidden="true">${icon('check')}</span></label>`).join('')}</div>
    </fieldset>
+   <fieldset class="category-field landmark-mode-field" id="landmark-modes" ${category==='mix'||category==='landmark'?'':'hidden'}><legend><span>名所クイズのモード</span></legend>
+    <div class="category-grid">${landmarkModes.map(m=>`<label class="category-card mode-card ${landmarkMode===m.id?'selected':''}" data-mode="${m.id}"><input type="radio" name="landmark-mode" value="${m.id}" ${landmarkMode===m.id?'checked':''}><span class="category-copy"><strong>${m.name}</strong><small>${m.note}</small></span><span class="radio-mark" aria-hidden="true">${icon('check')}</span></label>`).join('')}</div>
+   </fieldset>
    <button class="primary start-button" data-action="start"><span>${icon('compass')}10問に挑戦する</span>${icon('arrow')}</button>
    <p class="start-note" id="start-note">${chosen.id==='mix'?'5ジャンルからバランスよく出題':`${QUESTIONS.filter(q=>q.category===category).length}問からランダムに出題`}<span>時間制限なし</span></p>
   </section>
@@ -74,7 +82,7 @@ function renderQuiz(focusQuestion=false){
   <div class="quiz-layout"><section class="question-panel" aria-label="クイズ">
    <div class="question-meta"><span class="question-category ${cat.color}">${icon(cat.icon)}${cat.name}</span><span class="question-count"><strong>${String(index+1).padStart(2,'0')}</strong><span> / ${String(round.length).padStart(2,'0')}</span></span></div>
    <progress class="quiz-progress" max="${round.length}" value="${answers.length}" aria-label="回答した問題数"></progress>
-   <div class="question-copy"><span class="question-lead">${q.category==='capital'?'この都道府県の…':q.category==='area'?'広さをくらべてみよう':q.category==='landmark'?'ここは、どこ？':q.category==='craft'?'職人の技をめぐろう':'名物から探してみよう'}</span><h1 id="question-title" tabindex="-1">${ruby(q.title,q.kana)}</h1><p>${q.prompt}</p>${q.category==='area'?'<small class="area-date">2026年4月1日時点の面積で出題</small>':''}</div>
+   <div class="question-copy"><span class="question-lead">${q.category==='capital'?'この都道府県の…':q.category==='area'?'広さをくらべてみよう':q.category==='landmark'?(q.landmarkMode==='landmark'?'この都道府県の名所を探そう':'ここは、どこ？'):q.category==='craft'?'職人の技をめぐろう':'名物から探してみよう'}</span><h1 id="question-title" tabindex="-1">${ruby(q.title,q.kana)}</h1><p>${q.prompt}</p>${q.category==='area'?'<small class="area-date">2026年4月1日時点の面積で出題</small>':''}</div>
    <div class="answer-grid" role="group" aria-label="4つの選択肢">${q.options.map((o,i)=>`<button class="answer-button ${answered?(o.correct?'answer-correct':answered.selected===i?'answer-wrong':'answer-muted'):''}" data-answer="${i}" ${answered?'disabled':''}><span class="answer-number">${i+1}</span><span class="answer-label">${ruby(o.label,o.kana)}</span>${answered&&(o.correct||answered.selected===i)?`<span class="answer-status">${icon(o.correct?'check':'close')}<span>${o.correct?'正解':'選んだ答え'}</span></span>`:''}</button>`).join('')}</div>
    <div id="answer-feedback" class="feedback-slot" aria-live="polite" aria-atomic="true">${answered?feedbackMarkup(answered):'<p class="answer-hint">答えをひとつ選んでね。<span class="keyboard-hint">キーボードの 1〜4 でも回答できます</span></p>'}</div>
    ${journey()}
@@ -110,7 +118,7 @@ function renderResult(){
 }
 
 function start(){
- round=makeRound(category,10);index=0;answers=[];isReview=false;screen='quiz';
+ round=makeRound(category,10,Math.random,landmarkMode);index=0;answers=[];isReview=false;screen='quiz';
  renderQuiz(true);window.scrollTo({top:0,behavior:'instant'});
 }
 function answer(selected){
@@ -146,8 +154,13 @@ document.addEventListener('click',event=>{
 document.addEventListener('change',event=>{
  if(event.target.name==='category'){
   category=event.target.value;
-  document.querySelectorAll('.category-card').forEach(card=>card.classList.toggle('selected',card.dataset.category===category));
+  document.querySelector('#landmark-modes').hidden=category!=='mix'&&category!=='landmark';
+  document.querySelectorAll('[data-category]').forEach(card=>card.classList.toggle('selected',card.dataset.category===category));
   document.querySelector('#start-note').innerHTML=`${category==='mix'?'5ジャンルからバランスよく出題':`${QUESTIONS.filter(q=>q.category===category).length}問からランダムに出題`}<span>時間制限なし</span>`;
+ }
+ if(event.target.name==='landmark-mode'){
+  landmarkMode=event.target.value;
+  document.querySelectorAll('[data-mode]').forEach(card=>card.classList.toggle('selected',card.dataset.mode===landmarkMode));
  }
  if(event.target.id==='reading'){furigana=event.target.checked;document.body.classList.toggle('hide-readings',!furigana);}
 });
