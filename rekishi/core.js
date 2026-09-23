@@ -14,6 +14,7 @@
   function deck(group,count,reviewIds=null,rng=Math.random){
     const pool=D.PEOPLE.filter(p=>reviewIds?reviewIds.includes(p.id):(group==='all'||p.group===group));
     const take=Math.max(0,Math.min(pool.length,Number(count)||0));
+    if(take===0) return [];
     if(reviewIds||group!=='all') return shuffle(pool,rng).slice(0,take);
     const priority=shuffle(pool.filter(p=>PRIORITY_PREFS.has(p.pref)),rng);
     const others=shuffle(pool.filter(p=>!PRIORITY_PREFS.has(p.pref)),rng);
