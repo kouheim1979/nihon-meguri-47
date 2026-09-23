@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('./data.js'),C=require('./core.js');
 const rng=()=>{let x=213;return()=>((x=(x*1664525+1013904223)>>>0)/4294967296);};
 test('81 distinct, sourced people and all 47 prefectures',()=>{
-  assert.equal(D.PEOPLE.length,63);assert.equal(new Set(D.PEOPLE.map(p=>p.id)).size,81);
+  assert.equal(D.PEOPLE.length,81);assert.equal(new Set(D.PEOPLE.map(p=>p.id)).size,81);
   assert.equal(new Set(D.PEOPLE.map(p=>p.name)).size,81);assert.equal(new Set(D.PREFECTURES).size,47);
   for(const p of D.PEOPLE){assert.ok(D.PREFECTURES.includes(p.pref));assert.ok(D.PREFECTURES.includes(p.mix));assert.ok(D.GROUPS[p.group]);assert.ok(p.reading&&p.clue&&p.note);assert.equal(new URL(p.source).protocol,'https:');assert.ok(C.region(p.pref));}
 });
@@ -46,5 +46,5 @@ test('all-course quiz favors Ishikawa, Hiroshima and Wakayama when available',()
 });
 
 test('Ishikawa, Hiroshima and Wakayama each have twelve people',()=>{
-  for(const pref of ['石川県','広島県','和歌山県']) assert.equal(D.PEOPLE.filter(p=>p.pref===pref).length,6,pref);
+  for(const pref of ['石川県','広島県','和歌山県']) assert.equal(D.PEOPLE.filter(p=>p.pref===pref).length,12,pref);
 });
