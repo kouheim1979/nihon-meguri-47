@@ -3,6 +3,7 @@
   'use strict';
   const D = typeof module==='object' && module.exports ? require('./data.js') : root.BirthplaceData;
   const ids = new Set(D.PEOPLE.map(p=>p.id));
+  const PRIORITY_PREFS = new Set(['石川県','広島県','和歌山県']);
   const blank = () => ({version:1,answered:0,correct:0,mastered:[],review:[],best:0,rounds:0});
   function shuffle(items,rng=Math.random){
     const a=[...items];
@@ -12,7 +13,12 @@
   function region(pref){return Object.keys(D.REGIONS).find(k=>D.REGIONS[k].includes(pref)) || '';}
   function deck(group,count,reviewIds=null,rng=Math.random){
     const pool=D.PEOPLE.filter(p=>reviewIds?reviewIds.includes(p.id):(group==='all'||p.group===group));
-    return shuffle(pool,rng).slice(0,Math.max(0,Math.min(pool.length,Number(count)||0)));
+    const take=Math.max(0,Math.min(pool.length,Number(count)||0));
+    if(reviewIds||group!=='all') return shuffle(pool,rng).slice(0,take);
+    const priority=shuffle(pool.filter(p=>PRIORITY_PREFS.has(p.pref)),rng);
+    const others=shuffle(pool.filter(p=>!PRIORITY_PREFS.has(p.pref)),rng);
+    const target=Math.min(priority.length,Math.max(1,Math.ceil(take*0.4)));
+    return shuffle([...priority.slice(0,target),...others.slice(0,take-target)],rng);
   }
   function options(person,hard=false,rng=Math.random){
     const other=D.PREFECTURES.filter(p=>p!==person.pref);

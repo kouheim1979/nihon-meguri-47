@@ -35,3 +35,12 @@ test('hinted correct answer is not yet mastered',()=>{const p=C.record(C.blank()
 test('unassisted correct answer clears review and awards one stamp',()=>{let p=C.record(C.blank(),'p01',false,false);p=C.record(p,'p01',true,false);p=C.record(p,'p01',true,false);assert.deepEqual(p.review,[]);assert.deepEqual(p.mastered,['p01']);});
 test('a new mistake returns a mastered person to review',()=>{let p=C.record(C.blank(),'p01',true,false);p=C.record(p,'p01',false,false);assert.deepEqual(p.mastered,[]);assert.deepEqual(p.review,['p01']);});
 test('unknown IDs do not change statistics; recording is immutable',()=>{const p=C.blank();assert.deepEqual(C.record(p,'unknown',true,false),p);C.record(p,'p01',true,false);assert.equal(p.answered,0);});
+
+test('all-course quiz favors Ishikawa, Hiroshima and Wakayama when available',()=>{
+  for(const n of [5,10,20]){
+    const a=C.deck('all',n,null,rng());
+    const favored=a.filter(p=>['石川県','広島県','和歌山県'].includes(p.pref));
+    assert.ok(favored.length>=Math.min(2,n),'priority prefectures should appear more often');
+    assert.equal(new Set(a.map(p=>p.id)).size,a.length);
+  }
+});
