@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent
 KEY = 'ijin-birthplace-v1'
 HTML = (ROOT / 'index.html').read_text()
 HTML = re.sub(r'<script defer src="[^\"]+"></script>', '', HTML)
-HTML = HTML.replace('<link rel="stylesheet" href="style.css?v=1">', '<style>' + (ROOT/'style.css').read_text() + '</style>')
+HTML = re.sub(r'<link rel="stylesheet" href="([^"]+)">', lambda m: '<style>' + (ROOT/m[1].split('?')[0]).read_text() + '</style>', HTML)
 checks = []
 
 def check(condition, label):
