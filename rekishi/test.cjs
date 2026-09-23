@@ -2,16 +2,16 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('./data.js'),C=require('./core.js');
 const rng=()=>{let x=213;return()=>((x=(x*1664525+1013904223)>>>0)/4294967296);};
-test('48 distinct, sourced people and all 47 prefectures',()=>{
-  assert.equal(D.PEOPLE.length,48);assert.equal(new Set(D.PEOPLE.map(p=>p.id)).size,48);
-  assert.equal(new Set(D.PEOPLE.map(p=>p.name)).size,48);assert.equal(new Set(D.PREFECTURES).size,47);
+test('63 distinct, sourced people and all 47 prefectures',()=>{
+  assert.equal(D.PEOPLE.length,63);assert.equal(new Set(D.PEOPLE.map(p=>p.id)).size,63);
+  assert.equal(new Set(D.PEOPLE.map(p=>p.name)).size,63);assert.equal(new Set(D.PREFECTURES).size,47);
   for(const p of D.PEOPLE){assert.ok(D.PREFECTURES.includes(p.pref));assert.ok(D.PREFECTURES.includes(p.mix));assert.ok(D.GROUPS[p.group]);assert.ok(p.reading&&p.clue&&p.note);assert.equal(new URL(p.source).protocol,'https:');assert.ok(C.region(p.pref));}
 });
 test('birthplace is not the later place of activity',()=>{
   for(const [name,pref]of Object.entries({'伊達政宗':'山形県','福沢諭吉':'大阪府','徳川慶喜':'東京都','近藤勇':'東京都','滝廉太郎':'東京都','豊田佐吉':'静岡県','緒方洪庵':'岡山県'}))assert.equal(D.PEOPLE.find(p=>p.name===name).pref,pref);
 });
 test('course population is explicit',()=>{
-  assert.deepEqual(Object.keys(D.GROUPS).map(k=>C.deck(k,99).length),[8,12,14,14]);
+  assert.deepEqual(Object.keys(D.GROUPS).map(k=>C.deck(k,99).length),[8,13,21,21]);
 });
 test('random deck has no duplicates and caps at available questions',()=>{
   const a=C.deck('all',20,null,rng());assert.equal(a.length,20);assert.equal(new Set(a.map(p=>p.id)).size,20);
@@ -21,7 +21,7 @@ test('review does not inherit the topic filter',()=>{
   const a=C.deck('warrior',20,['p09','p22','p09','unknown']);assert.deepEqual(a.map(p=>p.id).sort(),['p09','p22']);
   assert.deepEqual(C.deck('all',20,[]),[]);
 });
-test('all 48 people have four unique options, exactly one correct, in both modes',()=>{
+test('all 63 people have four unique options, exactly one correct, in both modes',()=>{
   const r=rng();for(let i=0;i<30;i++)for(const p of D.PEOPLE)for(const hard of [false,true]){const a=C.options(p,hard,r);assert.equal(a.length,4);assert.equal(new Set(a).size,4);assert.equal(a.filter(x=>x===p.pref).length,1);for(const x of a)assert.ok(D.PREFECTURES.includes(x));if(hard)assert.ok(a.includes(p.mix));}
 });
 test('shuffle makes a copy',()=>{const a=[1,2,3];C.shuffle(a,rng());assert.deepEqual(a,[1,2,3]);});
@@ -43,4 +43,8 @@ test('all-course quiz favors Ishikawa, Hiroshima and Wakayama when available',()
     assert.ok(favored.length>=Math.min(2,n),'priority prefectures should appear more often');
     assert.equal(new Set(a.map(p=>p.id)).size,a.length);
   }
+});
+
+test('Ishikawa, Hiroshima and Wakayama each have six people',()=>{
+  for(const pref of ['石川県','広島県','和歌山県']) assert.equal(D.PEOPLE.filter(p=>p.pref===pref).length,6,pref);
 });
